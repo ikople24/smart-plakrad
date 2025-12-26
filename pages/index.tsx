@@ -7,16 +7,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useMenuStore, MenuItem } from "@/stores/useMenuStore";
 import ComplaintFormModal from "@/components/ComplaintFormModal";
-import Pm25Dashboard from "@/components/Pmdata";
 import Footer from "@/components/Footer";
 
-import SpecialFormModal from "@/components/sm-health/SpacialFormModal";
-import AvailableListOnly from "@/components/sm-health/AvailableListOnly";
-import { useHealthMenuStore } from "@/stores/useHealthMenuStore";
-import { BookOpen, Download } from "lucide-react";
-
-import EducationFormModal from "@/components/education/EducationFormModal";
-import ActivityFeedbackForm from "@/components/ActivityFeedbackForm";
+import { Download } from "lucide-react";
 
 export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -34,18 +27,11 @@ export default function Home() {
 
   const { menu, fetchMenu, menuLoading } = useMenuStore();
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-  const [showSpecialForm, setShowSpecialForm] = useState(false);
-  const [showEducationForm, setShowEducationForm] = useState(false);
-  const { menu: healthMenu, loading: healthLoading, fetchMenu: fetchHealthMenu } = useHealthMenuStore();
-  const [formData, setFormData] = useState({ name: "", phone: "", equipment: "", reason: "" });
-  const [hasFetchedHealth, setHasFetchedHealth] = useState(false);
-
 
   const texts = useMemo(() => [
-    "แจ้งทุกข์ - แจ้งเหตุ",
-    "ลงทะเบียน กายอุปกรณ์",
-    "เทศบาลเมืองตาคลี",
-    "Smart Solution Award 2023",
+    "ระบบรับเรื่องบริการสาธารณะ",
+    "เทศบาลตำบลปลักแรด",
+    "อ.บางระกำ จ.พิษณุโลก",
   ], []);
   const [displayText, setDisplayText] = useState("");
   const [textIndex, setTextIndex] = useState(0);
@@ -77,22 +63,8 @@ export default function Home() {
     }
   }, [menu.length, fetchMenu, menuLoading, hasFetched]);
 
-  useEffect(() => {
-    if (!hasFetchedHealth && healthMenu.length === 0 && !healthLoading) {
-      fetchHealthMenu();
-      setHasFetchedHealth(true);
-    }
-  }, [healthMenu.length, fetchHealthMenu, healthLoading, hasFetchedHealth]);
-
-
   const handleOpenModal = (label: string) => {
-    if (label === "ลงทะเบียนกายอุปกรณ์") {
-      setShowSpecialForm(true);
-    } else if (label === "สำรวจการศึกษา") {
-      setShowEducationForm(true);
-    } else {
-      setSelectedLabel(label);
-    }
+    setSelectedLabel(label);
   };
   const handleCloseModal = () => {
     setSelectedLabel(null);
@@ -113,7 +85,6 @@ export default function Home() {
         </span>
         <span className="animate-pulse text-indigo-500">|</span>
       </div>
-      <Pm25Dashboard />
       <div className="flex-1 px-4 pt-8 pb-20 w-full max-w-screen-sm mx-auto">
         {menuLoading ? (
           <div className="flex justify-center items-center h-60">
@@ -143,58 +114,15 @@ export default function Home() {
                 </button>
               ))}
             </div>
-            {/* {section 2 smart-health} */}
-            <div className="flex flex-col items-center mt-4 mb-2 p-2">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="inline-grid *:[grid-area:1/1]">
-                  <div className="status status-success status-lg animate-ping"></div>
-                  <div className="status status-success status-lg"></div>
-                </div>
-                <span className="font-bold text-blue-400">SMART-HEALTH</span>
-              </div>
-              <span className="font-semibold text-blue-400">✨ ศูนย์กายอุปกรณ์ ✨</span>
-              <AvailableListOnly menu={healthMenu} loading={healthLoading} />
-            </div>
-
-            {/* ส่วนแสดงความคิดเห็นของนักเรียนนักศึกษา */}
-            <div className="flex flex-col items-center mt-4 mb-2 p-2">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="inline-grid *:[grid-area:1/1]">
-                  <div className="status status-info status-lg animate-ping"></div>
-                  <div className="status status-info status-lg"></div>
-                </div>
-                <span className="font-bold text-indigo-400">ACTIVITY FEEDBACK</span>
-              </div>
-              <span className="font-semibold text-indigo-400">💭 แสดงความคิดเห็นและดูกิจกรรมย้อนหลัง</span>
-              <ActivityFeedbackForm selectedActivity={null} />
-            </div>
           </>
         )}
         {selectedLabel && (
           <ComplaintFormModal selectedLabel={selectedLabel} onClose={handleCloseModal} />
         )}
       </div>
-      {showSpecialForm && (
-        <SpecialFormModal
-          formData={formData}
-          setFormData={setFormData}
-          onClose={() => setShowSpecialForm(false)}
-        />
-      )}
-
-      <EducationFormModal
-        isOpen={showEducationForm}
-        onClose={() => setShowEducationForm(false)}
-      />
 
       <div className="flex justify-center items-center gap-4 text-purple-400 text-sm mb-4">
-        <a
-          href="https://heyzine.com/flip-book/7cf559d572.html"
-          className="flex items-center gap-1 hover:underline"
-        >
-          <BookOpen size={16} className="text-purple-500" />
-          คู่มือประชาชน
-        </a>
+        
         {deferredPrompt && (
           <button
             onClick={() => {

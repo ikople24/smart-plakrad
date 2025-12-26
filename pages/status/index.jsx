@@ -197,7 +197,7 @@ const StatusPage = () => {
   return (
     <>
       <Head>
-        <title>Smart-Takhli | ดำเนินการเสร็จสิ้น</title>
+        <title>Smart-Plakrad | ดำเนินการเสร็จสิ้น</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 

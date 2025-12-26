@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Home, Clock, CheckCircle } from "lucide-react";
 
 const navs = [
-  { label: "SMART-TAKHLI", icon: Home, path: "/" },
+  { label: "SMART-PLAKRAD", icon: Home, path: "/" },
   { label: "อยู่ระหว่างดำเนินการ", icon: Clock, path: "/complaint", disabled: false },
   { label: "ดำเนินการเสร็จสิ้น", icon: CheckCircle, path: "/status", disabled: false },
 ];
@@ -24,7 +24,7 @@ export default function BottomNav() {
           </div>
         ) : (
           <Link key={nav.path} href={nav.path}>
-            <div className={`text-xs text-center ${router.pathname === nav.path ? "text-purple-600 font-bold" : "text-gray-500"} flex flex-col items-center`}>
+            <div className={`text-xs text-center ${router.pathname === nav.path ? "text-orange-600 font-bold" : "text-gray-500"} flex flex-col items-center`}>
               <nav.icon className="mb-1" stroke="currentColor" />
               <div>{nav.label}</div>
             </div>

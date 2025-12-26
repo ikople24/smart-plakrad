@@ -45,7 +45,7 @@ const ReporterInput = ({
           {errors.detail && <p className="text-sm text-red-500 text-right ml-2">{errors.detail[0]}</p>}
         </div>
         <textarea
-          className="textarea w-full bg-blue-50 text-blue-900 border-blue-300 placeholder:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="textarea w-full bg-orange-50 text-orange-900 border-orange-300 placeholder:text-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
           placeholder="เติมเกี่ยวกับปัญหา หรือระบุ บ้านเลขที่ หรือชื่อถนน เพื่อให้เจ้าหน้าที่สามารถตรวจสอบได้ง่ายขึ้น"
           value={detail}
           onChange={(e) => setDetail(e.target.value)}
@@ -62,17 +62,17 @@ const ReporterInput = ({
               <label className="sr-only">คำนำหน้า</label>
             </div>
             <select
-              className="select select-bordered bg-blue-100 text-blue-900 border-blue-300 w-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="select select-bordered bg-orange-100 text-orange-900 border-orange-300 w-28 focus:outline-none focus:ring-2 focus:ring-orange-500"
               value={prefix}
               onChange={(e) => setPrefix(e.target.value)}
             >
-              <option value="นาย" className="text-blue-700">
+              <option value="นาย" className="text-orange-700">
                 นาย
               </option>
-              <option value="นาง" className="text-blue-700">
+              <option value="นาง" className="text-orange-700">
                 นาง
               </option>
-              <option value="น.ส." className="text-blue-700">
+              <option value="น.ส." className="text-orange-700">
                 น.ส.
               </option>
             </select>
@@ -83,7 +83,7 @@ const ReporterInput = ({
             </div>
             <input
               type="text"
-              className="input input-bordered flex-1 bg-blue-50 text-blue-900 border-blue-300 placeholder:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input input-bordered flex-1 bg-orange-50 text-orange-900 border-orange-300 placeholder:text-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="ชื่อ-นามสกุล"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -101,7 +101,7 @@ const ReporterInput = ({
         <div className="relative w-full">
           <input
             type="tel"
-            className="input input-bordered w-full bg-blue-50 text-blue-900 border-blue-300 placeholder:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10 tabular-nums"
+            className="input input-bordered w-full bg-orange-50 text-orange-900 border-orange-300 placeholder:text-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 pl-10 tabular-nums"
             placeholder="ระบุตัวเลข 10 หลัก"
             inputMode="numeric"
             pattern="\d*"
@@ -113,10 +113,10 @@ const ReporterInput = ({
             onInput={(e) => (e.target.value = e.target.value.replace(/\D/g, ""))}
           />
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-900 pointer-events-none z-10"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-500 pointer-events-none z-10"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"
-            fill="#9ca3af"
+            fill="currentColor"
           >
             <path d="M7.25 11.5C6.83579 11.5 6.5 11.8358 6.5 12.25C6.5 12.6642 6.83579 13 7.25 13H8.75C9.16421 13 9.5 12.6642 9.5 12.25C9.5 11.8358 9.16421 11.5 8.75 11.5H7.25Z" />
             <path

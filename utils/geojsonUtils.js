@@ -1,5 +1,21 @@
 // Utility functions for GeoJSON management
 
+// พาเลตสีสำหรับพื้นที่ชุมชน (ใช้ร่วมกันเพื่อป้องกันสีชนกัน)
+const COMMUNITY_COLORS = [
+  '#3b82f6', // blue
+  '#10b981', // green
+  '#f59e0b', // yellow
+  '#ef4444', // red
+  '#8b5cf6', // purple
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+  '#f97316', // orange
+  '#ec4899', // pink
+  '#6366f1', // indigo
+  '#14b8a6', // teal
+  '#f43f5e', // rose
+];
+
 /**
  * แปลงข้อมูล GeoJSON เป็นรูปแบบ polygon ที่ระบบสามารถใช้งานได้
  * @param {Object} geojsonData - ข้อมูล GeoJSON
@@ -10,6 +26,10 @@ export const convertGeoJSONToPolygons = (geojsonData) => {
     console.warn('Invalid GeoJSON data');
     return [];
   }
+
+  // ป้องกันกรณีชื่อคนละชื่อแต่ hash ไปลงสีเดียวกัน (mod palette) ทำให้สีซ้ำ
+  // เราจะบังคับให้แต่ละ feature ใช้สีไม่ซ้ำกันเท่าที่ palette มี
+  const usedColors = new Set();
 
   return geojsonData.features.map((feature, index) => {
     const { properties, geometry } = feature;
@@ -24,11 +44,12 @@ export const convertGeoJSONToPolygons = (geojsonData) => {
     const coordinates = geometry.coordinates[0].map(coord => [coord[1], coord[0]]);
     
     // สร้างสีตามชื่อชุมชน
-    const color = generateColorFromName(properties.title || `ชุมชน${index + 1}`);
+    const baseName = properties.title || `ชุมชน${index + 1}`;
+    const color = generateUniqueColorFromName(baseName, usedColors);
     
     return {
       id: `geojson-${properties.title || `ชุมชน${index + 1}`}-${index}`,
-      name: properties.title || `ชุมชน${index + 1}`,
+      name: baseName,
       boundaryor: properties.boundaryor || 'ไม่ระบุ',
       coordinates: coordinates,
       color: color,
@@ -57,21 +78,6 @@ export const convertGeoJSONToPolygons = (geojsonData) => {
  * @returns {string} hex color code
  */
 const generateColorFromName = (name) => {
-  const colors = [
-    '#3b82f6', // blue
-    '#10b981', // green
-    '#f59e0b', // yellow
-    '#ef4444', // red
-    '#8b5cf6', // purple
-    '#06b6d4', // cyan
-    '#84cc16', // lime
-    '#f97316', // orange
-    '#ec4899', // pink
-    '#6366f1', // indigo
-    '#14b8a6', // teal
-    '#f43f5e', // rose
-  ];
-  
   // ใช้ hash ของชื่อเพื่อเลือกสี
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -80,7 +86,40 @@ const generateColorFromName = (name) => {
     hash = hash & hash; // Convert to 32bit integer
   }
   
-  return colors[Math.abs(hash) % colors.length];
+  return COMMUNITY_COLORS[Math.abs(hash) % COMMUNITY_COLORS.length];
+};
+
+/**
+ * สร้างสีจากชื่อชุมชนแบบไม่ให้ชนกัน (unique) ในชุดข้อมูลเดียวกัน
+ * @param {string} name - ชื่อชุมชน
+ * @param {Set<string>} usedColors - สีที่ถูกใช้ไปแล้ว
+ * @returns {string} hex color code
+ */
+const generateUniqueColorFromName = (name, usedColors) => {
+  const base = generateColorFromName(name);
+  if (!usedColors.has(base)) {
+    usedColors.add(base);
+    return base;
+  }
+
+  // ถ้าชนกัน ให้เลือกสีถัดไปใน palette แบบวนรอบ จนกว่าจะเจอที่ยังไม่ใช้
+  const baseIndex = COMMUNITY_COLORS.indexOf(base);
+  if (baseIndex === -1) {
+    usedColors.add(base);
+    return base;
+  }
+
+  for (let i = 1; i < COMMUNITY_COLORS.length; i++) {
+    const candidate = COMMUNITY_COLORS[(baseIndex + i) % COMMUNITY_COLORS.length];
+    if (!usedColors.has(candidate)) {
+      usedColors.add(candidate);
+      return candidate;
+    }
+  }
+
+  // fallback: ถ้าใช้ครบทุกสีแล้ว ให้ใช้ base ไป (กรณี feature เยอะมาก)
+  usedColors.add(base);
+  return base;
 };
 
 /**
@@ -190,17 +229,38 @@ export const createCommunityPolygonsFromGeoJSON = (geojsonData, options = {}) =>
   const polygons = convertGeoJSONToPolygons(geojsonData);
   
   // ปรับแต่งตาม options
-  return polygons.map(polygon => ({
-    ...polygon,
-    fillOpacity: options.fillOpacity || 0.2,
-    weight: options.weight || 2,
-    popup: {
-      ...polygon.popup,
-      content: options.customPopupContent ? 
-        options.customPopupContent(polygon) : 
-        polygon.popup.content
+  return polygons.map((polygon, index) => {
+    // สีเริ่มต้น: กำหนดตามลำดับ feature (กันชนกันแน่นอนสำหรับชุดข้อมูลเล็ก ๆ เช่น 3 หมู่)
+    // รองรับการ override:
+    // - options.colorByName: { [name]: '#rrggbb' }
+    // - options.colors + options.colorStrategy='index': ใช้สีตามลำดับ feature ในไฟล์ geojson
+    let chosenColor = COMMUNITY_COLORS[index % COMMUNITY_COLORS.length];
+    if (options.colorByName && polygon.name && options.colorByName[polygon.name]) {
+      chosenColor = options.colorByName[polygon.name];
+    } else if (options.colorStrategy === 'index' && Array.isArray(options.colors) && options.colors.length > 0) {
+      chosenColor = options.colors[index % options.colors.length];
     }
-  }));
+
+    // สร้าง polygon เวอร์ชันที่ “สีถูกอัปเดตแล้ว” เพื่อส่งให้ customPopupContent
+    // (แก้ปัญหาที่ popup header ใช้สีเก่า แม้ polygon บนแผนที่จะเปลี่ยนสีแล้ว)
+    const updatedPolygon = {
+      ...polygon,
+      color: chosenColor,
+      fillColor: chosenColor,
+      fillOpacity: options.fillOpacity || 0.2,
+      weight: options.weight || 2,
+    };
+
+    return {
+      ...updatedPolygon,
+      popup: {
+        ...polygon.popup,
+        content: options.customPopupContent
+          ? options.customPopupContent(updatedPolygon)
+          : polygon.popup.content,
+      },
+    };
+  });
 };
 
 /**

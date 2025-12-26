@@ -8,7 +8,7 @@ export interface PagePermission {
   label: string;
   icon: string;
   description: string;
-  category: 'settings' | 'management' | 'reports' | 'user';
+  category: 'settings' | 'management' | 'reports';
 }
 
 // รายการหน้าทั้งหมดในระบบ
@@ -37,27 +37,6 @@ export const ALL_PAGES: PagePermission[] = [
     description: 'จัดการเรื่องร้องเรียนทั้งหมด',
     category: 'management'
   },
-  {
-    path: '/admin/smart-health',
-    label: 'smart-health',
-    icon: '🟣',
-    description: 'ระบบสุขภาพอัจฉริยะ',
-    category: 'management'
-  },
-  {
-    path: '/admin/education-map',
-    label: 'smart-school',
-    icon: '🏫',
-    description: 'ระบบการศึกษา',
-    category: 'management'
-  },
-  {
-    path: '/admin/manage-activities',
-    label: 'จัดการกิจกรรม',
-    icon: '📅',
-    description: 'จัดการกิจกรรมต่างๆ',
-    category: 'management'
-  },
   
   // Reports
   {
@@ -66,22 +45,6 @@ export const ALL_PAGES: PagePermission[] = [
     icon: '📊',
     description: 'ดูสถิติและรายงาน',
     category: 'reports'
-  },
-  {
-    path: '/admin/feedback-analysis',
-    label: 'วิเคราะห์ความคิดเห็น',
-    icon: '📈',
-    description: 'วิเคราะห์ความคิดเห็นผู้ใช้',
-    category: 'reports'
-  },
-  
-  // User
-  {
-    path: '/user/satisfaction',
-    label: 'ประเมินความพึงพอใจ',
-    icon: '⭐',
-    description: 'ประเมินความพึงพอใจการใช้บริการ',
-    category: 'user'
   },
 ];
 
@@ -100,14 +63,8 @@ export const DEFAULT_PERMISSIONS: Record<Role, string[]> = {
     '/admin/register-user',
     '/admin/manage-complaints',
     '/admin/dashboard',
-    '/admin/smart-health',
-    '/admin/education-map',
-    '/admin/feedback-analysis',
-    '/user/satisfaction',
   ],
-  user: [
-    '/user/satisfaction',
-  ],
+  user: [],
   guest: [],
 };
 
@@ -167,6 +124,4 @@ export const CATEGORY_LABELS: Record<string, string> = {
   settings: '⚙️ ตั้งค่า',
   management: '📋 จัดการ',
   reports: '📊 รายงาน',
-  user: '👤 ผู้ใช้',
 };
-

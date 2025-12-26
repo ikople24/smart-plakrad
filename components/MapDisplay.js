@@ -19,7 +19,7 @@ function ClickHandler({ onClick }) {
 }
 
 export default function MapDisplay({ lat, lng, showPopup = false }) {
-  const defaultPosition = [13.736717, 100.523186];
+  const defaultPosition = [16.6870, 100.0920]; // ตำบลปลักแรด
   const [position, setPosition] = useState(
     lat != null && lng != null ? [lat, lng] : defaultPosition
   );

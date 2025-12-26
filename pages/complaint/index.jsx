@@ -117,7 +117,7 @@ export default function ComplaintListPage() {
   return (
     <>
       <Head>
-        <title>Smart-Takhli | รายการร้องเรียน</title>
+        <title>Smart-Plakrad | รายการร้องเรียน</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       

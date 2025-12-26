@@ -434,7 +434,7 @@ export default function AdminDashboard() {
   const loadGeoJSONData = async () => {
     try {
       setGeojsonLoading(true);
-      const data = await loadGeoJSONFromFile('/takhli.geojson');
+      const data = await loadGeoJSONFromFile('/CMU_PLAKRAD.geojson');
       setGeojsonData(data);
     } catch (error) {
       console.error('Error loading GeoJSON data:', error);
@@ -450,8 +450,16 @@ export default function AdminDashboard() {
       const complaintsRes = await fetch(`/api/complaints?role=admin`);
       const complaintsData = await complaintsRes.json();
       
-      const satisfactionRes = await fetch('/api/satisfaction/stats');
-      const satisfactionData = await satisfactionRes.json();
+      // Satisfaction (กันพลาดกรณี API ไม่มี/ถูกปิดไว้)
+      let satisfactionData = { averageRating: 0 };
+      try {
+        const satisfactionRes = await fetch('/api/satisfaction/stats');
+        if (satisfactionRes.ok) {
+          satisfactionData = await satisfactionRes.json();
+        }
+      } catch (e) {
+        // noop: fallback to 0
+      }
       
       const assignmentsUrl = `/api/assignments/with-users?dateRange=${dateRange}&fiscalYear=${fiscalYearFilter || ''}`;
       const assignmentsRes = await fetch(assignmentsUrl);
@@ -1291,7 +1299,7 @@ export default function AdminDashboard() {
             </div>
             <div className="space-y-3 max-h-[400px] overflow-y-auto dashboard-scroll pr-2">
               {(() => {
-                const allCommunities = ["สามล", "รจนา", "หัวเขาตาคลี", "สว่างวงษ์", "ตาคลีพัฒนา", "ตีคลี", "ทิพย์พิมาน", "ตาคลีใหญ่", "บ้านใหม่โพนทอง", "วิลาวัลย์", "โพธิ์งาม", "พุทธนิมิต", "ยศวิมล", "ศรีเทพ", "สังข์ทอง", "ศรีสวัสดิ์", "เขาใบไม้", "จันทร์เทวี", "รวมใจ", "ตลาดโพนทอง", "มาลัย", "สารภี"];
+                const allCommunities = ["หมู่1-บ้านปลักแรด", "หมู่3-บ้านปลักแรด", "หมู่5-บ้านปลักแรด"];
                 const allCommunityStats = allCommunities.map(c => ({ name: c, count: stats.byCommunity[c] || 0 })).sort((a, b) => b.count - a.count);
                 const maxCount = Math.max(...allCommunityStats.map(c => c.count), 1);
                 

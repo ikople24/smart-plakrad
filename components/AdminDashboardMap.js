@@ -68,7 +68,8 @@ const calculatePolygonCenter = (coordinates) => {
 };
 
 // ฟังก์ชันย่อ–ที่ยาวเกินไป
-const shortenCommunityName = (name, maxLength = 15) => {
+// ปรับค่าเริ่มต้นให้ยาวขึ้นเพื่อให้ชื่อหมู่บ้าน (เช่น "หมู่1-บ้านปลักแรด") แสดงเต็มบนแผนที่
+const shortenCommunityName = (name, maxLength = 40) => {
   if (!name || name.length <= maxLength) {
     return name;
   }
@@ -216,7 +217,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
     
     // Fallback: ใช้พิกัดของ complaints
     if (complaintsWithLocation.length === 0) {
-      return [18.7883, 99.0000]; // พิกัดกลางของจังหวัดเชียงใหม่
+      return [16.6870, 100.0920]; // พิกัดกลางของตำบลปลักแรด
     }
     
     // Calculate the center of all markers
@@ -240,7 +241,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
     
     // Fallback: ใช้ zoom ตาม complaints
     if (complaintsWithLocation.length === 0) {
-      return 14; // Default zoom สำหรับจังหวัดเชียงใหม่ (ลดจาก 15 เป็น 14 = -1 ระดับ)
+      return 14; // Default zoom สำหรับตำบลปลักแรด
     }
     
     // Calculate appropriate zoom based on number of markers
@@ -616,7 +617,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                                 background-color: rgba(255, 255, 255, 0.95);
                                 border: 2px solid ${polygon.color || '#3b82f6'};
                                 border-radius: 6px;
-                                padding: 4px 8px;
+                                padding: 3px 6px;
                                 font-size: 11px;
                                 font-weight: 600;
                                 color: ${polygon.color || '#3b82f6'};
@@ -624,8 +625,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                                 box-shadow: 0 2px 6px rgba(0,0,0,0.25);
                                 pointer-events: none;
                                 text-align: center;
-                                min-width: 80px;
-                                max-width: 120px;
+                                min-width: 110px;
+                                max-width: 200px;
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                                 z-index: 1000;
@@ -636,8 +637,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                                 ${shortenedName}
                               </div>
                             `,
-                            iconSize: [120, 30],
-                            iconAnchor: [60, 15]
+                            iconSize: [200, 28],
+                            iconAnchor: [100, 14]
                           })}
                         />
                       )}
@@ -850,7 +851,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                           background-color: rgba(255, 255, 255, 0.95);
                           border: 2px solid ${polygon.color || '#3b82f6'};
                           border-radius: 6px;
-                          padding: 4px 8px;
+                          padding: 3px 6px;
                           font-size: 11px;
                           font-weight: 600;
                           color: ${polygon.color || '#3b82f6'};
@@ -858,8 +859,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                           box-shadow: 0 2px 6px rgba(0,0,0,0.25);
                           pointer-events: none;
                           text-align: center;
-                          min-width: 80px;
-                          max-width: 120px;
+                          min-width: 110px;
+                          max-width: 200px;
                           overflow: hidden;
                           text-overflow: ellipsis;
                           z-index: 1000;
@@ -870,8 +871,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                           ${shortenedName}
                         </div>
                       `,
-                      iconSize: [120, 30],
-                      iconAnchor: [60, 15]
+                      iconSize: [200, 28],
+                      iconAnchor: [100, 14]
                     })}
                   />
                 )}

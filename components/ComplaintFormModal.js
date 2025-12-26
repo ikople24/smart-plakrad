@@ -11,7 +11,7 @@ import Image from 'next/image';
 const LocationConfirm = dynamic(() => import('./LocationConfirm'), { ssr: false });
 
 const complaintFormSchema = z.object({
-  community: z.string().min(1, 'กรุณาระบุ 1 ชุมชน'),
+  community: z.string().min(1, 'กรุณาระบุ 1 หมู่บ้าน'),
   prefix: z.string().min(1, 'กรุณาเลือกคำนำหน้า'),
   fullName: z.string().min(2, 'ชื่อ-นามสกุลต้องมีอย่างน้อย 2 ตัวอักษร'),
   phone: z.string().length(10, 'เบอร์โทรศัพท์ต้องมี 10 หลัก'),
@@ -57,6 +57,7 @@ useEffect(() => {
           title: 'กรุณารอสักครู่',
           text: 'กำลังอัปโหลดรูปภาพอยู่ กรุณารอจนกว่าจะเสร็จสิ้น',
           confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#f97316',
         });
       }
       return;
@@ -102,7 +103,8 @@ useEffect(() => {
         icon: 'warning',
         title: 'ข้อมูลไม่ครบถ้วน',
         text: errorMessages,
-        confirmButtonText: 'ตกลง'
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#f97316',
       });
       return;
     }
@@ -137,7 +139,7 @@ useEffect(() => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-app-id': process.env.NEXT_PUBLIC_APP_ID || 'app_b',
+          'x-app-id': process.env.NEXT_PUBLIC_APP_ID || 'app_i',
         },
         body: JSON.stringify(payload),
       });
@@ -151,6 +153,7 @@ useEffect(() => {
         title: 'ส่งเรื่องสำเร็จ',
         html: `เลขที่เรื่องของคุณคือ <strong>${complaintId}</strong>`,
         confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#f97316',
       });
       handleClearForm();
       onClose?.(); // Close the modal
@@ -161,6 +164,7 @@ useEffect(() => {
         title: 'เกิดข้อผิดพลาด',
         text: err.message || 'ไม่สามารถส่งข้อมูลได้',
         confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#f97316',
       });
     } finally {
       setIsSubmitting(false);
@@ -228,7 +232,11 @@ useEffect(() => {
                   <button
                     key={option._id}
                     type="button"
-                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border whitespace-nowrap ${selectedProblems.includes(option._id) ? 'bg-blue-100 text-black border-blue-300' : 'border-gray-300 text-black hover:bg-gray-100'}`}
+                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border whitespace-nowrap transition-all ${
+                      selectedProblems.includes(option._id) 
+                        ? 'bg-orange-500 text-white border-none'
+                        : 'bg-white text-gray-900 hover:bg-orange-300 border-gray-400'
+                    }`}
                     onClick={() => {
                       setSelectedProblems(prev =>
                         prev.includes(option._id)
@@ -278,14 +286,14 @@ useEffect(() => {
           <button
             type="button"
             onClick={handleClearForm}
-            className="btn btn-outline btn-warning"
+            className="px-4 py-2 rounded-lg border-2 border-orange-400 text-orange-600 font-medium hover:bg-orange-50 transition-all"
             disabled={isSubmitting || isUploadingImages}
           >
             ล้างฟอร์ม
           </button>
           <button 
             type="submit" 
-            className="btn btn-info" 
+            className="px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             disabled={isSubmitting || isUploadingImages}
           >
             {(isSubmitting || isUploadingImages) && <span className="loading loading-infinity loading-xs mr-2" />}

@@ -78,8 +78,8 @@ const ImageUploads = ({ onChange, onUploadingChange }) => {
 
   return (
     <div className="form-control">
-      <div className="w-full flex items-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2">
-        <label className={`btn btn-sm bg-blue-600 hover:bg-blue-700 text-white border-none ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+      <div className="w-full flex items-center rounded-md border border-orange-200 bg-orange-50 px-4 py-2">
+        <label className={`btn btn-sm bg-orange-500 hover:bg-orange-600 text-white border-none ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
           {isUploading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin mr-1" />
@@ -118,7 +118,7 @@ const ImageUploads = ({ onChange, onUploadingChange }) => {
                 alt={`preview-${index}`}
                 width={300}
                 height={96}
-                className="w-full h-24 object-cover rounded border border-gray-300 p-1 bg-white shadow-sm"
+                className="w-full h-24 object-cover rounded border border-orange-200 p-1 bg-white shadow-sm"
               />
               <button
                 type="button"

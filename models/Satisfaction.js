@@ -3,8 +3,15 @@ import mongoose from "mongoose";
 const SatisfactionSchema = new mongoose.Schema({
   complaintId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Complaint",
+    // โปรเจกต์นี้ใช้โมเดล/คอลเลกชันร้องเรียนหลักเป็น SubmittedReport
+    ref: "SubmittedReport",
     required: true,
+  },
+  attempt: {
+    // ลำดับครั้งที่ประเมินของเรื่องนั้นๆ (1..4)
+    type: Number,
+    default: 1,
+    min: 1,
   },
   rating: {
     type: Number,
@@ -16,10 +23,8 @@ const SatisfactionSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+}, {
+  timestamps: { createdAt: true, updatedAt: true }
 });
 
 export default mongoose.models.Satisfaction || mongoose.model("Satisfaction", SatisfactionSchema);
