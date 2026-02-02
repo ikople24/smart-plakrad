@@ -1,19 +1,32 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, LayersControl } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMapEvents,
+  LayersControl,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from 'leaflet';
+import L from "leaflet";
 
-export default function LocationPickerModal({ initialLocation, onConfirm, onCancel }) {
-  const [location, setLocation] = useState(initialLocation || { lat: 18.7, lng: 98.9 });
+export default function LocationPickerModal({
+  initialLocation,
+  onConfirm,
+  onCancel,
+}) {
+  const [location, setLocation] = useState(
+    initialLocation || { lat: 18.7, lng: 98.9 },
+  );
 
   useEffect(() => {
     delete L.Icon.Default.prototype._getIconUrl;
 
     L.Icon.Default.mergeOptions({
-      iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-      iconUrl: '/leaflet/marker-icon.png',
-      shadowUrl: '/leaflet/marker-shadow.png',
+      iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+      iconUrl: "/leaflet/marker-icon.png",
+      shadowUrl: "/leaflet/marker-shadow.png",
     });
   }, []);
 
@@ -31,21 +44,29 @@ export default function LocationPickerModal({ initialLocation, onConfirm, onCanc
       <p className="text-center mt-2 text-sm text-gray-700">
         พิกัดใหม่📍 {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
       </p>
-      <div className="card p-4 mb-4 relative" style={{ paddingBottom: '4rem' }}>
+      <div className="card p-4 mb-4 relative" style={{ paddingBottom: "4rem" }}>
         <div className="w-full">
-          <MapContainer center={[location.lat, location.lng]} zoom={15} style={{ height: '300px', width: '100%' }}>
+          <MapContainer
+            center={[location.lat, location.lng]}
+            zoom={15}
+            style={{ height: "300px", width: "100%" }}
+          >
             <LayersControl position="topright">
-              <LayersControl.BaseLayer checked name="แผนที่พื้นฐาน">
+              {/* แผนที่ถนน */}
+              <LayersControl.BaseLayer name="แผนที่ถนน">
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                  attribution="&copy; OpenStreetMap contributors"
                 />
               </LayersControl.BaseLayer>
-              <LayersControl.BaseLayer name="แผนที่ดาวเทียม">
+
+              {/* Google ดาวเทียม + ถนน */}
+              <LayersControl.BaseLayer checked name="แผนที่ดาวเทียม">
                 <TileLayer
-                  url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-                  attribution="&copy; Google Maps"
-                  subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                  url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                  subdomains={["mt0", "mt1", "mt2", "mt3"]}
+                  attribution="&copy; Google"
+                  maxZoom={20}
                 />
               </LayersControl.BaseLayer>
             </LayersControl>
@@ -77,7 +98,10 @@ export default function LocationPickerModal({ initialLocation, onConfirm, onCanc
 }
 
 LocationPickerModal.propTypes = {
-  initialLocation: PropTypes.shape({ lat: PropTypes.number, lng: PropTypes.number }),
+  initialLocation: PropTypes.shape({
+    lat: PropTypes.number,
+    lng: PropTypes.number,
+  }),
   onConfirm: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
 };
