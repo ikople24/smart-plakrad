@@ -7,6 +7,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useMenuStore, MenuItem } from "@/stores/useMenuStore";
 import ComplaintFormModal from "@/components/ComplaintFormModal";
+import SurveyFormModal from "@/components/SurveyFormModal";
 import Footer from "@/components/Footer";
 
 import { Download } from "lucide-react";
@@ -27,6 +28,19 @@ export default function Home() {
 
   const { menu, fetchMenu, menuLoading } = useMenuStore();
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+
+  // เพิ่มเมนู "งานสำรวจ" ถ้ายังไม่มีในรายการ
+  const displayMenu = useMemo(() => {
+    const hasSurvey = menu.some((m: MenuItem) => m.Prob_name === "งานสำรวจ");
+    if (hasSurvey) return menu;
+    const surveyItem: MenuItem = {
+      _id: -1,
+      Prob_name: "งานสำรวจ",
+      Prob_pic: "https://res.cloudinary.com/dczmhfvgh/image/upload/v1746262020/lxdbaeywwuexrebndnrq.png",
+      order: 1,
+    };
+    return [...menu, surveyItem];
+  }, [menu]);
 
   const texts = useMemo(() => [
     "ระบบรับเรื่องบริการสาธารณะ",
@@ -93,7 +107,7 @@ export default function Home() {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-              {menu.map((item: MenuItem, index) => (
+              {displayMenu.map((item: MenuItem, index) => (
                 <button
                   key={item._id || index}
                   className="flex flex-col items-center rounded-xl"
@@ -116,9 +130,11 @@ export default function Home() {
             </div>
           </>
         )}
-        {selectedLabel && (
+        {selectedLabel === "งานสำรวจ" ? (
+          <SurveyFormModal onClose={handleCloseModal} />
+        ) : selectedLabel ? (
           <ComplaintFormModal selectedLabel={selectedLabel} onClose={handleCloseModal} />
-        )}
+        ) : null}
       </div>
 
       <div className="flex justify-center items-center gap-4 text-purple-400 text-sm mb-4">

@@ -194,6 +194,7 @@ export default function AdminDashboard() {
   const [topReporters, setTopReporters] = useState([]);
   const [pieChartData, setPieChartData] = useState([]);
   const [activeSection, setActiveSection] = useState('overview');
+  const [surveys, setSurveys] = useState([]);
 
   const { menu, fetchMenu } = useMenuStore();
   const { problemOptions, fetchProblemOptions } = useProblemOptionStore();
@@ -447,8 +448,20 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       
-      const complaintsRes = await fetch(`/api/complaints?role=admin`);
+      const [complaintsRes, surveysRes] = await Promise.all([
+        fetch(`/api/complaints?role=admin`),
+        fetch('/api/surveys'),
+      ]);
       const complaintsData = await complaintsRes.json();
+      let surveysData = [];
+      try {
+        if (surveysRes.ok) {
+          surveysData = await surveysRes.json();
+        }
+      } catch (e) {
+        // noop
+      }
+      setSurveys(Array.isArray(surveysData) ? surveysData : []);
       
       // Satisfaction (กันพลาดกรณี API ไม่มี/ถูกปิดไว้)
       let satisfactionData = { averageRating: 0 };
@@ -846,6 +859,29 @@ export default function AdminDashboard() {
     });
   }, [complaints, selectedCategory, selectedStatus]);
 
+  // Transform surveys to complaint-like format for map markers
+  const surveysForMap = useMemo(() => {
+    return surveys
+      .filter(s => s.location?.lat && s.location?.lng)
+      .map(s => ({
+        _id: s._id,
+        category: s.surveyType,
+        detail: s.poleCode || s.surveyType,
+        community: 'งานสำรวจ',
+        fullName: '-',
+        status: s.status || 'ปักเสร็จ',
+        timestamp: s.createdAt,
+        createdAt: s.createdAt,
+        images: s.images || [],
+        location: s.location,
+        _isSurvey: true,
+      }));
+  }, [surveys]);
+
+  const allMapMarkers = useMemo(() => {
+    return [...filteredComplaints, ...surveysForMap];
+  }, [filteredComplaints, surveysForMap]);
+
   const completionRate = useMemo(() => {
     return stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(1) : 0;
   }, [stats]);
@@ -1182,6 +1218,17 @@ export default function AdminDashboard() {
             <p className="text-4xl font-bold tracking-tight counter-number">{stats.overdue}</p>
           </div>
 
+          {/* Surveys */}
+          <div className="stat-card stat-gradient-purple rounded-2xl p-5 text-white col-span-2 lg:col-span-1">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <MapPinIcon className="w-6 h-6" />
+              </div>
+            </div>
+            <p className="text-violet-100 text-sm mb-1">งานสำรวจปักเสร็จ</p>
+            <p className="text-4xl font-bold tracking-tight counter-number">{surveys.length}</p>
+          </div>
+
           {/* Satisfaction */}
           <div className="stat-card stat-gradient-amber rounded-2xl p-5 text-white col-span-2 lg:col-span-1">
             <div className="flex items-start justify-between mb-4">
@@ -1250,7 +1297,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="map-container-modern">
-            <MapWithNoSSR complaints={filteredComplaints} polygons={polygons} assignments={assignments} />
+            <MapWithNoSSR complaints={allMapMarkers} polygons={polygons} assignments={assignments} />
           </div>
         </div>
 
@@ -1697,6 +1744,66 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+
+        {/* Survey Work Section */}
+        {surveys.length > 0 && (
+          <div className="dashboard-section p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                  <MapPinIcon className="w-5 h-5 text-violet-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">งานสำรวจที่ปักเสร็จ</h3>
+                  <p className="text-sm text-slate-500">แสดง {surveys.length} รายการ</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {surveys
+                .slice()
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 9)
+                .map((survey) => {
+                  const createdAt = new Date(survey.createdAt);
+                  return (
+                    <div
+                      key={survey._id}
+                      className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md hover:border-violet-200 transition-all"
+                    >
+                      {Array.isArray(survey.images) && survey.images.length > 0 ? (
+                        <div className="h-40 bg-slate-100 relative overflow-hidden">
+                          <img
+                            src={survey.images[0]}
+                            alt="ภาพสำรวจ"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-40 bg-gradient-to-br from-violet-100 to-purple-200 flex items-center justify-center">
+                          <MapPinIcon className="w-12 h-12 text-violet-300" />
+                        </div>
+                      )}
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
+                            {survey.surveyType}
+                          </span>
+                          <span className="text-xs text-slate-500">{survey.surveyId}</span>
+                        </div>
+                        <p className="font-medium text-slate-800 mb-2">
+                          {survey.poleCode || 'ไม่มีรหัสเสาไฟ'}
+                        </p>
+                        <div className="text-xs text-slate-400">
+                          {createdAt.toLocaleDateString('th-TH', { dateStyle: 'medium' })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
         {/* Recent Complaints Cards */}
         <div className="dashboard-section p-6">

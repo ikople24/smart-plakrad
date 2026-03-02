@@ -77,7 +77,13 @@ const LocationConfirm = ({
       {typeof window !== "undefined" && useCurrent && location?.lat && location?.lng && (
         <div className="rounded-lg overflow-hidden border border-orange-200 shadow-sm bg-orange-50 space-y-2">
           <div className="h-64 rounded overflow-hidden border">
-            <MapDisplay lat={location.lat} lng={location.lng} showPopup={true} />
+            <MapDisplay
+              lat={location.lat}
+              lng={location.lng}
+              showPopup={true}
+              draggable={true}
+              onLocationChange={(newLoc) => setLocation(newLoc)}
+            />
           </div>
           
         </div>
