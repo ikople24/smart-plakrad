@@ -282,7 +282,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
     }
   }, [polygons, complaintsWithLocation]);
 
-  const getMarkerColor = (status) => {
+  const getMarkerColor = (status, isSurvey) => {
+    if (isSurvey || status === "ปักเสร็จ") return "#8b5cf6"; // purple for survey
     switch (status) {
       case "in_progress":
       case "อยู่ระหว่างดำเนินการ":
@@ -295,7 +296,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status, isSurvey) => {
+    if (isSurvey || status === "ปักเสร็จ") return "📍"; // map pin for survey
     switch (status) {
       case "in_progress":
       case "อยู่ระหว่างดำเนินการ":
@@ -308,7 +310,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, isSurvey) => {
+    if (isSurvey || status === "ปักเสร็จ") return "งานสำรวจ";
     switch (status) {
       case "in_progress":
       case "อยู่ระหว่างดำเนินการ":
@@ -323,7 +326,22 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
 
   // Create custom icon for each marker
   const createCustomIcon = (complaint) => {
-    const markerColor = getMarkerColor(complaint.status);
+    const isSurvey = complaint._isSurvey === true;
+    const markerColor = getMarkerColor(complaint.status, isSurvey);
+
+    // งานสำรวจ: ใช้ไอคอน 📍 สีม่วง
+    if (isSurvey) {
+      return L.divIcon({
+        className: "custom-marker",
+        html: `
+          <div class="marker-icon" style="background-color: ${markerColor};" title="งานสำรวจ">
+            ${getStatusIcon(complaint.status, true)}
+          </div>
+        `,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+    }
 
     // Only try to get category icon if menu is loaded and not loading
     if (menu && menu.length > 0 && !menuLoading) {
@@ -351,7 +369,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
       className: "custom-marker",
       html: `
         <div class="marker-icon" style="background-color: ${markerColor};">
-          ${getStatusIcon(complaint.status)}
+          ${getStatusIcon(complaint.status, false)}
         </div>
       `,
       iconSize: [28, 28],
@@ -739,10 +757,12 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                       <div
                         className="popup-modern-header"
                         style={{
-                          "--popup-color": getMarkerColor(complaint.status),
+                          "--popup-color": getMarkerColor(complaint.status, complaint._isSurvey),
                           "--popup-color-dark":
-                            complaint.status === "completed" ||
-                            complaint.status === "ดำเนินการเสร็จสิ้น"
+                            complaint._isSurvey || complaint.status === "ปักเสร็จ"
+                              ? "#7c3aed"
+                              : complaint.status === "completed" ||
+                                complaint.status === "ดำเนินการเสร็จสิ้น"
                               ? "#059669"
                               : "#1d4ed8",
                         }}
@@ -750,6 +770,9 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                         <div className="popup-modern-title">
                           <div className="popup-modern-title-icon">
                             {(() => {
+                              if (complaint._isSurvey) {
+                                return <span>{getStatusIcon(complaint.status, true)}</span>;
+                              }
                               const categoryIcon = menu?.find(
                                 (m) => m.Prob_name === complaint.category,
                               )?.Prob_pic;
@@ -762,11 +785,11 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                                   unoptimized
                                 />
                               ) : (
-                                <span>{getStatusIcon(complaint.status)}</span>
+                                <span>{getStatusIcon(complaint.status, false)}</span>
                               );
                             })()}
                           </div>
-                          <span>{complaint.category || "ไม่ระบุประเภท"}</span>
+                          <span>{complaint._isSurvey ? `งานสำรวจ - ${complaint.category}` : (complaint.category || "ไม่ระบุประเภท")}</span>
                         </div>
                       </div>
 
@@ -781,12 +804,12 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                           </div>
                           <div className="popup-modern-row-content">
                             <div className="popup-modern-row-label">
-                              รายละเอียด
+                              {complaint._isSurvey ? "รหัสเสาไฟ" : "รายละเอียด"}
                             </div>
                             <div className="popup-modern-row-value">
-                              {complaint.detail?.substring(0, 80) ||
-                                "ไม่มีรายละเอียด"}
-                              ...
+                              {complaint._isSurvey
+                                ? (complaint.detail || "ไม่มีรหัสเสาไฟ")
+                                : `${complaint.detail?.substring(0, 80) || "ไม่มีรายละเอียด"}...`}
                             </div>
                           </div>
                         </div>
@@ -804,6 +827,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                             </div>
                           </div>
                         </div>
+                        {!complaint._isSurvey && (
                         <div className="popup-modern-row">
                           <div
                             className="popup-modern-row-icon"
@@ -828,19 +852,24 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                             </div>
                           </div>
                         </div>
+                        )}
                         <div className="popup-modern-row">
                           <div
                             className="popup-modern-row-icon"
                             style={{
                               background:
-                                complaint.status === "completed" ||
-                                complaint.status === "ดำเนินการเสร็จสิ้น"
+                                complaint._isSurvey || complaint.status === "ปักเสร็จ"
+                                  ? "#ede9fe"
+                                  : complaint.status === "completed" ||
+                                    complaint.status === "ดำเนินการเสร็จสิ้น"
                                   ? "#dcfce7"
                                   : "#dbeafe",
                             }}
                           >
-                            {complaint.status === "completed" ||
-                            complaint.status === "ดำเนินการเสร็จสิ้น"
+                            {complaint._isSurvey || complaint.status === "ปักเสร็จ"
+                              ? "📍"
+                              : complaint.status === "completed" ||
+                                complaint.status === "ดำเนินการเสร็จสิ้น"
                               ? "✅"
                               : "🔄"}
                           </div>
@@ -853,15 +882,16 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                             </div>
                             <div className="popup-modern-row-value">
                               <span
-                                className={`popup-modern-status ${complaint.status === "completed" || complaint.status === "ดำเนินการเสร็จสิ้น" ? "completed" : "in_progress"}`}
+                                className={`popup-modern-status ${complaint._isSurvey || complaint.status === "ปักเสร็จ" ? "completed" : complaint.status === "completed" || complaint.status === "ดำเนินการเสร็จสิ้น" ? "completed" : "in_progress"}`}
                               >
                                 <span>
-                                  {complaint.status === "completed" ||
+                                  {complaint._isSurvey || complaint.status === "ปักเสร็จ" ||
+                                  complaint.status === "completed" ||
                                   complaint.status === "ดำเนินการเสร็จสิ้น"
                                     ? "✓"
                                     : "●"}
                                 </span>
-                                {getStatusText(complaint.status)}
+                                {getStatusText(complaint.status, complaint._isSurvey)}
                               </span>
                             </div>
                           </div>
@@ -1066,10 +1096,12 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                   <div
                     className="popup-modern-header"
                     style={{
-                      "--popup-color": getMarkerColor(complaint.status),
+                      "--popup-color": getMarkerColor(complaint.status, complaint._isSurvey),
                       "--popup-color-dark":
-                        complaint.status === "completed" ||
-                        complaint.status === "ดำเนินการเสร็จสิ้น"
+                        complaint._isSurvey || complaint.status === "ปักเสร็จ"
+                          ? "#7c3aed"
+                          : complaint.status === "completed" ||
+                            complaint.status === "ดำเนินการเสร็จสิ้น"
                           ? "#059669"
                           : "#1d4ed8",
                     }}
@@ -1077,6 +1109,9 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                     <div className="popup-modern-title">
                       <div className="popup-modern-title-icon">
                         {(() => {
+                          if (complaint._isSurvey) {
+                            return <span>{getStatusIcon(complaint.status, true)}</span>;
+                          }
                           const categoryIcon = menu?.find(
                             (m) => m.Prob_name === complaint.category,
                           )?.Prob_pic;
@@ -1089,17 +1124,17 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                               unoptimized
                             />
                           ) : (
-                            <span>{getStatusIcon(complaint.status)}</span>
+                            <span>{getStatusIcon(complaint.status, false)}</span>
                           );
                         })()}
                       </div>
-                      <span>{complaint.category || "ไม่ระบุประเภท"}</span>
+                      <span>{complaint._isSurvey ? `งานสำรวจ - ${complaint.category}` : (complaint.category || "ไม่ระบุประเภท")}</span>
                     </div>
                   </div>
 
                   {/* Body content */}
                   <div className="popup-modern-body">
-                    {/* Detail */}
+                    {/* Detail / รหัสเสาไฟ for survey */}
                     <div className="popup-modern-row">
                       <div
                         className="popup-modern-row-icon"
@@ -1108,16 +1143,18 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                         📝
                       </div>
                       <div className="popup-modern-row-content">
-                        <div className="popup-modern-row-label">รายละเอียด</div>
+                        <div className="popup-modern-row-label">
+                          {complaint._isSurvey ? "รหัสเสาไฟ" : "รายละเอียด"}
+                        </div>
                         <div className="popup-modern-row-value">
-                          {complaint.detail?.substring(0, 80) ||
-                            "ไม่มีรายละเอียด"}
-                          ...
+                          {complaint._isSurvey
+                            ? (complaint.detail || "ไม่มีรหัสเสาไฟ")
+                            : `${complaint.detail?.substring(0, 80) || "ไม่มีรายละเอียด"}...`}
                         </div>
                       </div>
                     </div>
 
-                    {/* Community - First */}
+                    {/* Community - First (งานสำรวจ for survey) */}
                     <div className="popup-modern-row">
                       <div
                         className="popup-modern-row-icon"
@@ -1133,7 +1170,8 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                       </div>
                     </div>
 
-                    {/* Reporter - Second (Censored last name) */}
+                    {/* Reporter - Second (ซ่อนสำหรับงานสำรวจ) */}
+                    {!complaint._isSurvey && (
                     <div className="popup-modern-row">
                       <div
                         className="popup-modern-row-icon"
@@ -1156,21 +1194,26 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                         </div>
                       </div>
                     </div>
+                    )}
 
-                    {/* Status & Date - Moved from Community position */}
+                    {/* Status & Date */}
                     <div className="popup-modern-row">
                       <div
                         className="popup-modern-row-icon"
                         style={{
                           background:
-                            complaint.status === "completed" ||
-                            complaint.status === "ดำเนินการเสร็จสิ้น"
+                            complaint._isSurvey || complaint.status === "ปักเสร็จ"
+                              ? "#ede9fe"
+                              : complaint.status === "completed" ||
+                                complaint.status === "ดำเนินการเสร็จสิ้น"
                               ? "#dcfce7"
                               : "#dbeafe",
                         }}
                       >
-                        {complaint.status === "completed" ||
-                        complaint.status === "ดำเนินการเสร็จสิ้น"
+                        {complaint._isSurvey || complaint.status === "ปักเสร็จ"
+                          ? "📍"
+                          : complaint.status === "completed" ||
+                            complaint.status === "ดำเนินการเสร็จสิ้น"
                           ? "✅"
                           : "🔄"}
                       </div>
@@ -1183,22 +1226,24 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                         </div>
                         <div className="popup-modern-row-value">
                           <span
-                            className={`popup-modern-status ${complaint.status === "completed" || complaint.status === "ดำเนินการเสร็จสิ้น" ? "completed" : "in_progress"}`}
+                            className={`popup-modern-status ${complaint._isSurvey || complaint.status === "ปักเสร็จ" ? "completed" : complaint.status === "completed" || complaint.status === "ดำเนินการเสร็จสิ้น" ? "completed" : "in_progress"}`}
                           >
                             <span>
-                              {complaint.status === "completed" ||
+                              {complaint._isSurvey || complaint.status === "ปักเสร็จ" ||
+                              complaint.status === "completed" ||
                               complaint.status === "ดำเนินการเสร็จสิ้น"
                                 ? "✓"
                                 : "●"}
                             </span>
-                            {getStatusText(complaint.status)}
+                            {getStatusText(complaint.status, complaint._isSurvey)}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Footer with action button */}
+                  {/* Footer with action button - ซ่อนสำหรับงานสำรวจ (CardModalDetail ไม่รองรับ) */}
+                  {!complaint._isSurvey && (
                   <div className="popup-modern-footer">
                     <button
                       onClick={() => handleOpenDetail(complaint)}
@@ -1208,6 +1253,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                       <span>ดูรายละเอียด</span>
                     </button>
                   </div>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -1252,7 +1298,7 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
           <div className="space-y-4 text-xs">
             <div>
               <p className="font-semibold text-slate-700 mb-2">สถานะหมุด</p>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 mr-2 shadow-sm"></div>
                   <span className="text-slate-600">ดำเนินการ</span>
@@ -1260,6 +1306,10 @@ const AdminDashboardMap = ({ complaints, polygons = [] }) => {
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 mr-2 shadow-sm"></div>
                   <span className="text-slate-600">เสร็จสิ้น</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-violet-400 to-violet-500 mr-2 shadow-sm" title="งานสำรวจ"></div>
+                  <span className="text-slate-600">📍 งานสำรวจ</span>
                 </div>
               </div>
             </div>

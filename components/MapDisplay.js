@@ -25,7 +25,7 @@ function ClickHandler({ onClick }) {
   return null;
 }
 
-export default function MapDisplay({ lat, lng, showPopup = false }) {
+export default function MapDisplay({ lat, lng, showPopup = false, onLocationChange, draggable = true }) {
   const defaultPosition = [16.687, 100.092];
   const [position, setPosition] = useState(
     lat != null && lng != null ? [lat, lng] : defaultPosition,
@@ -37,6 +37,11 @@ export default function MapDisplay({ lat, lng, showPopup = false }) {
     }
   }, [lat, lng]);
 
+  const updatePosition = (newLat, newLng) => {
+    setPosition([newLat, newLng]);
+    onLocationChange?.({ lat: newLat, lng: newLng });
+  };
+
   return (
     <MapContainer
       center={position}
@@ -44,7 +49,7 @@ export default function MapDisplay({ lat, lng, showPopup = false }) {
       style={{ height: "100%", width: "100%" }}
     >
       <ClickHandler
-        onClick={(latlng) => setPosition([latlng.lat, latlng.lng])}
+        onClick={(latlng) => updatePosition(latlng.lat, latlng.lng)}
       />
 
       <LayersControl position="topright">
@@ -67,19 +72,40 @@ export default function MapDisplay({ lat, lng, showPopup = false }) {
         </LayersControl.BaseLayer>
       </LayersControl>
 
-      {position && (
-        <Marker position={position}>
-          {showPopup && (
+      {position ? (
+        <Marker
+          position={position}
+          draggable={draggable}
+          eventHandlers={
+            draggable
+              ? {
+                  dragend: (e) => {
+                    const pos = e.target.getLatLng();
+                    updatePosition(pos.lat, pos.lng);
+                  },
+                }
+              : undefined
+          }
+        >
+          {showPopup ? (
             <Popup>
-              📍 ตำแหน่งของคุณ
-              <br />
-              ละติจูด: {position[0]}
-              <br />
-              ลองจิจูด: {position[1]}
+              <div>
+                <div>📍 ตำแหน่งของคุณ</div>
+                {draggable ? (
+                  <div className="text-xs text-gray-500 mt-1">
+                    ลากหมุดเพื่อปรับตำแหน่ง หรือคลิกบนแผนที่
+                  </div>
+                ) : null}
+                <div className="mt-1">
+                  ละติจูด: {position[0].toFixed(6)}
+                  <br />
+                  ลองจิจูด: {position[1].toFixed(6)}
+                </div>
+              </div>
             </Popup>
-          )}
+          ) : null}
         </Marker>
-      )}
+      ) : null}
     </MapContainer>
   );
 }
